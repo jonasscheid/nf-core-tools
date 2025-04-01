@@ -21,7 +21,7 @@ rich>=13.3.1
 rocrate
 repo2rocrate
 tabulate
-textual==2.1.2
+textual==3.0.0
 trogon
 pdiff
 ruamel.yaml
