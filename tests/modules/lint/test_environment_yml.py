@@ -1,12 +1,11 @@
-import yaml
-from nf_core.modules.lint.environment_yml import environment_yml
-from nf_core.components.lint import ComponentLint, LintExceptionError
-from nf_core.components.nfcore_component import NFCoreComponent
 import pytest
-from yaml.scanner import ScannerError
-from pathlib import Path
+import yaml
 
 import nf_core.modules.lint
+from nf_core.components.lint import ComponentLint
+from nf_core.components.nfcore_component import NFCoreComponent
+from nf_core.modules.lint.environment_yml import environment_yml
+
 from ...test_modules import TestModules
 
 
@@ -69,6 +68,7 @@ from ...test_modules import TestModules
 def test_environment_yml_sorting(tmp_path, input_content, expected):
     test_file = tmp_path / "environment.yml"
     test_file.write_text(input_content)
+
     class DummyModule(NFCoreComponent):
         def __init__(self, path):
             self.environment_yml = path
@@ -77,11 +77,13 @@ def test_environment_yml_sorting(tmp_path, input_content, expected):
             self.passed = []
             self.failed = []
             self.warned = []
+
     class DummyLint(ComponentLint):
         def __init__(self):
             self.modules_repo = type("repo", (), {"local_repo_dir": tmp_path})
             self.passed = []
             self.failed = []
+
     module = DummyModule(test_file)
     lint = DummyLint()
     (tmp_path / "modules").mkdir(exist_ok=True)
@@ -89,7 +91,10 @@ def test_environment_yml_sorting(tmp_path, input_content, expected):
     environment_yml(lint, module)
     result = test_file.read_text()
     lines = result.splitlines(True)
-    if lines[:2] == ["---\n", "# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json\n"]:
+    if lines[:2] == [
+        "---\n",
+        "# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json\n",
+    ]:
         parsed = yaml.safe_load("".join(lines[2:]))
     else:
         parsed = yaml.safe_load(result)
@@ -106,6 +111,7 @@ def test_environment_yml_sorting(tmp_path, input_content, expected):
 def test_environment_yml_invalid_file(tmp_path):
     test_file = tmp_path / "bad.yml"
     test_file.write_text("invalid: yaml: here")
+
     class DummyModule(NFCoreComponent):
         def __init__(self, path):
             self.environment_yml = path
@@ -114,11 +120,13 @@ def test_environment_yml_invalid_file(tmp_path):
             self.passed = []
             self.failed = []
             self.warned = []
+
     class DummyLint(ComponentLint):
         def __init__(self):
             self.modules_repo = type("repo", (), {"local_repo_dir": tmp_path})
             self.passed = []
             self.failed = []
+
     module = DummyModule(test_file)
     lint = DummyLint()
     (tmp_path / "modules").mkdir(exist_ok=True)
@@ -130,6 +138,7 @@ def test_environment_yml_invalid_file(tmp_path):
 def test_environment_yml_empty_file(tmp_path):
     test_file = tmp_path / "empty.yml"
     test_file.write_text("")
+
     class DummyModule(NFCoreComponent):
         def __init__(self, path):
             self.environment_yml = path
@@ -138,11 +147,13 @@ def test_environment_yml_empty_file(tmp_path):
             self.passed = []
             self.failed = []
             self.warned = []
+
     class DummyLint(ComponentLint):
         def __init__(self):
             self.modules_repo = type("repo", (), {"local_repo_dir": tmp_path})
             self.passed = []
             self.failed = []
+
     module = DummyModule(test_file)
     lint = DummyLint()
     (tmp_path / "modules").mkdir(exist_ok=True)
@@ -154,6 +165,7 @@ def test_environment_yml_empty_file(tmp_path):
 def test_environment_yml_missing_dependencies(tmp_path):
     test_file = tmp_path / "no_deps.yml"
     test_file.write_text("channels:\n  - conda-forge\n")
+
     class DummyModule(NFCoreComponent):
         def __init__(self, path):
             self.environment_yml = path
@@ -162,11 +174,13 @@ def test_environment_yml_missing_dependencies(tmp_path):
             self.passed = []
             self.failed = []
             self.warned = []
+
     class DummyLint(ComponentLint):
         def __init__(self):
             self.modules_repo = type("repo", (), {"local_repo_dir": tmp_path})
             self.passed = []
             self.failed = []
+
     module = DummyModule(test_file)
     lint = DummyLint()
     (tmp_path / "modules").mkdir(exist_ok=True)
@@ -174,7 +188,10 @@ def test_environment_yml_missing_dependencies(tmp_path):
     environment_yml(lint, module)
     result = test_file.read_text()
     lines = result.splitlines(True)
-    if lines[:2] == ["---\n", "# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json\n"]:
+    if lines[:2] == [
+        "---\n",
+        "# yaml-language-server: $schema=https://raw.githubusercontent.com/nf-core/modules/master/modules/environment-schema.json\n",
+    ]:
         parsed = yaml.safe_load("".join(lines[2:]))
     else:
         parsed = yaml.safe_load(result)
@@ -184,6 +201,7 @@ def test_environment_yml_missing_dependencies(tmp_path):
 
 
 # Integration tests using the full ModuleLint class
+
 
 class TestModulesEnvironmentYml(TestModules):
     """Integration tests for environment.yml linting using real modules"""
