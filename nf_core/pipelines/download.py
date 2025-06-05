@@ -32,6 +32,7 @@ from nf_core.utils import (
     NFCORE_CACHE_DIR,
     NFCORE_DIR,
     SingularityCacheFilePathValidator,
+    gh_api,
 )
 
 log = logging.getLogger(__name__)
@@ -268,6 +269,11 @@ class DownloadWorkflow:
         # Download the pipeline files for each selected revision
         log.info("Downloading workflow files from GitHub")
 
+        print(self.wf_revisions)
+        print(self.wf_branches)
+        print(self.wf_sha)
+        print(self.wf_download_url)
+        print(self.nf_config)
         for item in zip(self.revision, self.wf_sha.values(), self.wf_download_url.values()):
             revision_dirname = self.download_wf_files(revision=item[0], wf_sha=item[1], download_url=item[2])
 
@@ -629,10 +635,11 @@ class DownloadWorkflow:
     def download_wf_files(self, revision, wf_sha, download_url):
         """Downloads workflow files from GitHub to the :attr:`self.outdir`."""
         log.debug(f"Downloading {download_url}")
-
+        print(f"Downloading {self.pipeline} revision '{revision}' from {download_url}")
         # Download GitHub zip file into memory and extract
-        url = requests.get(download_url)
-        with ZipFile(io.BytesIO(url.content)) as zipfile:
+        content = gh_api.get("https://api.github.com/repos/{}/zipball/{}".format(self.pipeline, wf_sha)).content
+
+        with ZipFile(io.BytesIO(content)) as zipfile:
             zipfile.extractall(self.outdir)
 
         # create a filesystem-safe version of the revision name for the directory
@@ -642,7 +649,7 @@ class DownloadWorkflow:
             revision_dirname = re.sub("[^0-9a-zA-Z]+", "_", self.pipeline + revision_dirname)
 
         # Rename the internal directory name to be more friendly
-        gh_name = f"{self.pipeline}-{wf_sha if bool(wf_sha) else ''}".split("/")[-1]
+        gh_name = f"{re.sub("[^0-9a-zA-Z]+", "-", self.pipeline)}-{wf_sha if bool(wf_sha) else ''}".split("/")[-1]
         os.rename(
             os.path.join(self.outdir, gh_name),
             os.path.join(self.outdir, revision_dirname),
