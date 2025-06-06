@@ -423,7 +423,7 @@ def command_pipelines_lint(
 )
 @click.option(
     "-a",
-    "--api_download",
+    "--api-download",
     is_flag=True,
     default=False,
     help="Download repos via GitHub API (allows for authentication).",
